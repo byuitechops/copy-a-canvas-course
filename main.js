@@ -46,9 +46,7 @@ function checkMigration(migration, newCourse, callback) {
                 } else {
                     if (data[0].finished_at) {
                         clearInterval(checkLoop);
-                        console.log('\nCourse Copied');
                         callback(null, newCourse);
-                        console.log('Call 1');
                     } else {
                         console.log(chalk.blue(`Course Copy Progress: `) + data[0].workflow_state);
                     }
