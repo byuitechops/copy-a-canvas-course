@@ -42,12 +42,13 @@ function checkMigration(migration, newCourse, callback) {
             (checkErr, data) => {
                 if (checkErr) {
                     clearInterval(checkLoop);
-                    callback(checkErr);
+                    callback(checkErr, newCourse);
                 } else {
                     if (data[0].finished_at) {
                         clearInterval(checkLoop);
                         console.log('\nCourse Copied');
                         callback(null, newCourse);
+                        console.log('Call 1');
                     } else {
                         console.log(chalk.blue(`Course Copy Progress: `) + data[0].workflow_state);
                     }
@@ -75,9 +76,10 @@ module.exports = (sID, aID, stepCallback) => {
                     createCourse,
                     createMigration,
                     checkMigration
-                ], (err, result) => {
-                    if (err) stepCallback(err, result);
-                    else stepCallback(null, result);
+                ], (err, newCourse) => {
+                    console.log('Callback');
+                    if (err) stepCallback(err, newCourse);
+                    else stepCallback(null, newCourse);
                 });
             };
         }
