@@ -15,7 +15,7 @@ function createCourse(callback) {
         (err, newCourse) => {
             if (err) callback(err, newCourse);
             else {
-                console.log(`New Course Created: ${newCourse.id}`);
+                console.log(chalk.blue(`Gauntlet Copy Created: ${chalk.green(newCourse.id)}`));
                 callback(null, newCourse);
             }
         }
@@ -30,7 +30,7 @@ function createMigration(newCourse, callback) {
     canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, {}, (err, migration) => {
         if (err) callback(err, migration, newCourse);
         else {
-            console.log(`Migration Created: ${migration.id}`);
+            console.log(chalk.blue(`Migration Begun: ${chalk.green(migration.id)}`));
             callback(null, migration, newCourse);
         }
     });
@@ -65,7 +65,7 @@ module.exports = (sID, aID, stepCallback) => {
             });
 
             if (!exists) {
-                stepCallback('Please input a valid Account ID.');
+                stepCallback(chalk.red('Please input a valid Account ID.'));
             } else {
                 sourceCourseID = sID;
                 targetAccountID = aID;
@@ -75,7 +75,6 @@ module.exports = (sID, aID, stepCallback) => {
                     createMigration,
                     checkMigration
                 ], (err, newCourse) => {
-                    console.log('Callback');
                     if (err) stepCallback(err, newCourse);
                     else stepCallback(null, newCourse);
                 });
