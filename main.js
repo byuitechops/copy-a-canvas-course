@@ -15,7 +15,7 @@ function createCourse(callback) {
         (err, newCourse) => {
             if (err) callback(err, newCourse);
             else {
-                console.log(chalk.blue(`Gauntlet Copy Created: ${chalk.green(newCourse.id)}`));
+                console.log(chalk.blueBright(`Gauntlet Copy Created: ${chalk.greenBright(newCourse.id)}`));
                 callback(null, newCourse);
             }
         }
@@ -30,7 +30,7 @@ function createMigration(newCourse, callback) {
     canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, {}, (err, migration) => {
         if (err) callback(err, migration, newCourse);
         else {
-            console.log(chalk.blue(`Migration Begun: ${chalk.green(migration.id)}`));
+            console.log(chalk.blueBright(`Migration Begun: ${chalk.greenBright(migration.id)}`));
             callback(null, migration, newCourse);
         }
     });
@@ -48,7 +48,7 @@ function checkMigration(migration, newCourse, callback) {
                         clearInterval(checkLoop);
                         callback(null, newCourse);
                     } else {
-                        console.log(chalk.blue(`Course Copy Progress: `) + data[0].workflow_state);
+                        console.log(chalk.blueBright(`Course Copy Progress: `) + data[0].workflow_state);
                     }
                 }
             }
@@ -65,7 +65,7 @@ module.exports = (sID, aID, stepCallback) => {
             });
 
             if (!exists) {
-                stepCallback(chalk.red('Please input a valid Account ID.'));
+                stepCallback(chalk.redBright('Please input a valid Account ID.'));
             } else {
                 sourceCourseID = sID;
                 targetAccountID = aID;
