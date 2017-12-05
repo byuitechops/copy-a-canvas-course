@@ -25,7 +25,7 @@ function createCourse(callback) {
 function createMigration(newCourse, callback) {
     const postObj = {
         'migration_type': 'course_copy_importer',
-        'settings[source_course_id]': 748,
+        'settings[source_course_id]': sourceCourseID,
     }
     canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, {}, (err, migration) => {
         if (err) callback(err, migration, newCourse);
@@ -57,6 +57,7 @@ function checkMigration(migration, newCourse, callback) {
 }
 
 module.exports = (sID, aID, stepCallback) => {
+    sourceCourseID = sID;
     canvas.get('/api/v1/accounts', (err, accounts) => {
         if (err) stepCallback(err, accounts);
         else {
