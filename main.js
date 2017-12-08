@@ -11,7 +11,7 @@ function createCourse(callback) {
         {
             'course[name]': `Conversion Gauntlet ${today.getMonth()+1}/${today.getDate()} ${today.getHours()}:${today.getMinutes()}`,
             'course[course_code]': `CG ${today.getMonth()+1}/${today.getDate()} ${today.getHours()}:${today.getMinutes()}`,
-        }, {},
+        },
         (err, newCourse) => {
             if (err) callback(err, newCourse);
             else {
@@ -27,7 +27,7 @@ function createMigration(newCourse, callback) {
         'migration_type': 'course_copy_importer',
         'settings[source_course_id]': sourceCourseID,
     }
-    canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, {}, (err, migration) => {
+    canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, (err, migration) => {
         if (err) callback(err, migration, newCourse);
         else {
             console.log(chalk.blueBright(`Migration Begun: ${chalk.greenBright(migration.id)}`));
