@@ -1,6 +1,7 @@
 const canvas = require('canvas-wrapper');
 const chalk = require('chalk');
 const asyncLib = require('async');
+const copyGroups = require('./copyGroups.js');
 
 var sourceCourseID = 748;
 var targetAccountID = -1;
@@ -77,7 +78,11 @@ module.exports = (sID, aID, stepCallback) => {
                     checkMigration
                 ], (err, newCourse) => {
                     if (err) stepCallback(err, newCourse);
-                    else stepCallback(null, newCourse);
+                    else {
+                        copyGroups(sID, newCourse.id, () => {
+                            stepCallback(null, newCourse);
+                        });
+                    }
                 });
             };
         }
