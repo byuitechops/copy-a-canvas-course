@@ -89,6 +89,7 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
                 else {
                     /* Add the group information to our object to keep track of old/new */
                     groupIndex[group.group_category_id].newGroups.push(newGroup);
+                    group.newGroup = newGroup;
                     eachCallback(null);
                 }
             });
@@ -104,14 +105,55 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
         function getDBGroups(oldGroup, eachCallback) {
             /* Get the discussion topics for each old group */
             canvas.get(`/api/v1/groups/${oldGroup.id}/discussion_topics`, (err, topics) => {
-                
+                if (err) {
+                    eachCallback(err);
+                    return;
+                }
+                oldGroup.topics = topics;
+                console.log(oldGroup.topics.length);
+                eachCallback(null);
             });
         }
 
         asyncLib.each(oldGroups, getDBGroups, callback);
     }
 
-    function setDiscussionGroups(discussionGroups, callback) {
+    function setDiscussionGroups(callback) {
+
+        function getDiscussionTopics(oldGroup, eachCallback) {
+
+            function setNewDiscussionTopic(newTopicID, groupID, newTopicCallback) {
+                /* Connect the topic to the group */
+                canvas.put(`/api/v1/courses/${targetCourseID}/discussion_topics/${newTopicID}`, {}, (err, result) => {
+                    if (err) newTopicCallback(err);
+                    else {
+
+                    }
+                });
+            }
+
+            function retrieveDiscussion(topicName, retrieveCallback) {
+                canvas.get(`/api/v1/courses/${targetCourseID}/discussion_topics?search_term=${topicName}`, (err, resultArr) => {
+                    if (err) retrieveCallback(err);
+                    else {
+                        /* Set the found discussion topic to connect to the right group */
+                        setNewDiscussionTopic(resultArr[0].id, oldGroup.newGroup.id, (err) => {
+                            
+                        });
+                    }
+                });
+            }
+
+            if (oldGroup.topics.length > 0) {
+                asyncLib.each(oldGroup.topics, retrieveDiscussion, (err) => {
+
+                });
+            }
+        }
+
+        asyncLib.each(groupIndex.oldGroups, getDiscussionTopics, (err) => {
+            
+        });
 
     }
 
