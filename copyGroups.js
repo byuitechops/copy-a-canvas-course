@@ -110,7 +110,6 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
                     return;
                 }
                 oldGroup.topics = topics;
-                console.log(oldGroup.topics.length);
                 eachCallback(null);
             });
         }
@@ -118,43 +117,36 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
         asyncLib.each(oldGroups, getDBGroups, callback);
     }
 
-    function setDiscussionGroups(callback) {
+    function setDiscussionGroups(oldGroups, callback) {
 
-        function getDiscussionTopics(oldGroup, eachCallback) {
-
-            function setNewDiscussionTopic(newTopicID, groupID, newTopicCallback) {
-                /* Connect the topic to the group */
-                canvas.put(`/api/v1/courses/${targetCourseID}/discussion_topics/${newTopicID}`, {}, (err, result) => {
-                    if (err) newTopicCallback(err);
+        /* For each group */
+        function setDiscussionTopic(oldGroup, eachCallback) {
+            
+            /* For each discussion topic */
+            function getSetTopic(oldTopic, innerEachCb) {
+                /* Get the correct DB from the new course */
+                canvas.get(`/api/v1/courses/${targetCourseID}/discussion_topics?search_term=${oldTopic.title}`,
+                (err1, topicArr) => {
+                    if (err1) innerEachCb(err1);
                     else {
-
-                    }
-                });
-            }
-
-            function retrieveDiscussion(topicName, retrieveCallback) {
-                canvas.get(`/api/v1/courses/${targetCourseID}/discussion_topics?search_term=${topicName}`, (err, resultArr) => {
-                    if (err) retrieveCallback(err);
-                    else {
-                        /* Set the found discussion topic to connect to the right group */
-                        setNewDiscussionTopic(resultArr[0].id, oldGroup.newGroup.id, (err) => {
-                            
+                        /* Attach new discussion to the new group */
+                        canvas.put(`/api/v1/courses/${targetCourseID}/discussion_topics/${topicArr[0].id}`,
+                        {
+                            'group_category_id': oldGroup.newGroup.id
+                        },
+                        (err2, topic) => {
+                            if (err2) innerEachCb(err2);
+                            else {
+                                innerEachCb(err2);
+                            }
                         });
                     }
                 });
             }
 
-            if (oldGroup.topics.length > 0) {
-                asyncLib.each(oldGroup.topics, retrieveDiscussion, (err) => {
-
-                });
-            }
+            asyncLib.each(oldGroup.topics, getSetTopic, eachCallback);
         }
-
-        asyncLib.each(groupIndex.oldGroups, getDiscussionTopics, (err) => {
-            
-        });
-
+        asyncLib.each(oldGroups, setDiscussionTopic, callback);
     }
 
     asyncLib.waterfall([
