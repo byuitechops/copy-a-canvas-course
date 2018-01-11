@@ -158,8 +158,8 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
         setDiscussionGroups
     ], (err, result) => {
         if (err) {
-            console.error(err);
+            stepCallback(err);
         }
-        stepCallback();
+        stepCallback(null);
     });
 };
