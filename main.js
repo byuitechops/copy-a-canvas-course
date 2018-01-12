@@ -8,19 +8,27 @@ var targetAccountID = -1;
 
 function createCourse(callback) {
     var today = new Date();
-    canvas.post(`/api/v1/accounts/${targetAccountID}/courses`,
-        {
-            'course[name]': `Conversion Gauntlet ${today.getMonth()+1}/${today.getDate()} ${today.getHours()}:${today.getMinutes()}`,
-            'course[course_code]': `CG ${today.getMonth()+1}/${today.getDate()} ${today.getHours()}:${today.getMinutes()}`,
-        },
-        (err, newCourse) => {
-            if (err) callback(err, newCourse);
-            else {
-                console.log(chalk.blueBright(`Gauntlet Copy Created: ${chalk.greenBright(newCourse.id)}`));
-                callback(null, newCourse);
-            }
+
+    /* Get the old course, so we can get the name */
+    canvas.get(`/api/v1/courses/${sourceCourseID}`, (oldErr, oldCourse) => {
+        if (oldErr) {
+            callback(oldErr);
+            return;
         }
-    );
+        canvas.post(`/api/v1/accounts/${targetAccountID}/courses`,
+            {
+                'course[name]': oldCourse[0].name,
+                'course[course_code]': oldCourse[0].course_code,
+            },
+            (err, newCourse) => {
+                if (err) callback(err, newCourse);
+                else {
+                    console.log(chalk.blueBright(`Gauntlet Copy Created: ${chalk.greenBright(newCourse.id)}`));
+                    callback(null, newCourse);
+                }
+            }
+        );
+    });
 }
 
 function createMigration(newCourse, callback) {
@@ -57,6 +65,32 @@ function checkMigration(migration, newCourse, callback) {
     }, 2000);
 }
 
+/* Update the name/code of the copy to the name/code of the source course */
+function updateSettings(newCourse, callback) {
+    /* Get the old course, so we can get the name */
+    canvas.get(`/api/v1/courses/${sourceCourseID}`, (oldErr, oldCourse) => {
+        if (oldErr) {
+            callback(oldErr);
+            return;
+        }
+        /* Put the name/code into the new course */
+        canvas.put(`/api/v1/courses/${newCourse.id}`,
+        {
+            'course': {
+                name: oldCourse.name,
+                course_code: oldCourse.course_code
+            }
+        },
+        (newErr, changedCourse) => {
+            if (newErr) {
+                callback(newErr);
+                return;
+            }
+            callback(null, newCourse);
+        });
+    });
+}
+
 module.exports = (sID, aID, stepCallback) => {
     sourceCourseID = sID;
     canvas.get('/api/v1/accounts', (err, accounts) => {
@@ -75,7 +109,8 @@ module.exports = (sID, aID, stepCallback) => {
                 asyncLib.waterfall([
                     createCourse,
                     createMigration,
-                    checkMigration
+                    checkMigration,
+                    updateSettings,
                 ], (err, newCourse) => {
                     if (err) stepCallback(err, newCourse);
                     else {

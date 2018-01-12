@@ -114,39 +114,56 @@ module.exports = (sourceCourseID, targetCourseID, stepCallback) => {
             });
         }
 
-        asyncLib.each(oldGroups, getDBGroups, callback);
+        asyncLib.each(oldGroups, getDBGroups, (eachErr) => {
+            if (eachErr) {
+                callback(eachErr);
+                return;
+            }
+            callback(null, oldGroups);
+        });
     }
 
-    function setDiscussionGroups(oldGroups, callback) {
-
-        /* For each group */
-        function setDiscussionTopic(oldGroup, eachCallback) {
-            
-            /* For each discussion topic */
-            function getSetTopic(oldTopic, innerEachCb) {
-                /* Get the correct DB from the new course */
-                canvas.get(`/api/v1/courses/${targetCourseID}/discussion_topics?search_term=${oldTopic.title}`,
+    function setDiscussionTopic(oldGroup, eachCallback) {
+        /* For each discussion topic */
+        function getSetTopic(oldTopic, innerEachCb) {
+            /* Get the correct DB from the new course */
+            canvas.get(`/api/v1/courses/${targetCourseID}/discussion_topics?search_term=${oldTopic.title}`,
                 (err1, topicArr) => {
                     if (err1) innerEachCb(err1);
                     else {
                         /* Attach new discussion to the new group */
                         canvas.put(`/api/v1/courses/${targetCourseID}/discussion_topics/${topicArr[0].id}`,
-                        {
-                            'group_category_id': oldGroup.newGroup.id
-                        },
-                        (err2, topic) => {
-                            if (err2) innerEachCb(err2);
-                            else {
-                                innerEachCb(err2);
-                            }
-                        });
+                            {
+                                'group_category_id': oldGroup.newGroup.id
+                            },
+                            (err2, topic) => {
+                                if (err2) innerEachCb(err2);
+                                else {
+                                    innerEachCb(null);
+                                }
+                            });
                     }
                 });
-            }
-
-            asyncLib.each(oldGroup.topics, getSetTopic, eachCallback);
         }
-        asyncLib.each(oldGroups, setDiscussionTopic, callback);
+
+        asyncLib.each(oldGroup.topics, getSetTopic, (eachErr) => {
+            if (eachErr) {
+                callback(eachErr);
+                return;
+            }
+            callback(null);
+        });
+    }
+
+    function setDiscussionGroups(oldGroups, callback) {
+        /* For each group */
+        asyncLib.each(oldGroups, setDiscussionTopic, (err) => {
+            if (err) {
+                callback(err);
+                return;
+            }
+            callback(null);
+        });
     }
 
     asyncLib.waterfall([
