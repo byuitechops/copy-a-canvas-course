@@ -23,7 +23,7 @@ function createCourse(callback) {
             (err, newCourse) => {
                 if (err) callback(err, newCourse);
                 else {
-                    console.log(chalk.blueBright(`Gauntlet Copy Created: ${chalk.greenBright(newCourse.id)}`));
+                    console.log(chalk.blueBright(`Course Copy Created: ${chalk.greenBright(newCourse.id)}`));
                     callback(null, newCourse);
                 }
             }
