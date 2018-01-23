@@ -114,9 +114,9 @@ module.exports = (sID, aID, stepCallback) => {
                 ], (err, newCourse) => {
                     if (err) stepCallback(err, newCourse);
                     else {
-                        copyGroups(sID, newCourse.id, () => {
+                        //copyGroups(sID, newCourse.id, () => {
                             stepCallback(null, newCourse);
-                        });
+                        //});
                     }
                 });
             };
