@@ -1,13 +1,13 @@
+/* eslint-env node, es6 */
+/* eslint no-console:0 */
 const canvas = require('canvas-wrapper');
 const chalk = require('chalk');
 const asyncLib = require('async');
-const copyGroups = require('./copyGroups.js');
 
 var sourceCourseID = 748;
 var targetAccountID = -1;
 
 function createCourse(callback) {
-    var today = new Date();
 
     /* Get the old course, so we can get the name */
     canvas.get(`/api/v1/courses/${sourceCourseID}`, (oldErr, oldCourse) => {
@@ -15,18 +15,17 @@ function createCourse(callback) {
             callback(oldErr);
             return;
         }
-        canvas.post(`/api/v1/accounts/${targetAccountID}/courses`,
-            {
-                'course[name]': oldCourse[0].name,
-                'course[course_code]': oldCourse[0].course_code,
-            },
-            (err, newCourse) => {
-                if (err) callback(err, newCourse);
-                else {
-                    console.log(chalk.blueBright(`Course Copy Created: ${chalk.greenBright(newCourse.id)}`));
-                    callback(null, newCourse);
-                }
+        canvas.post(`/api/v1/accounts/${targetAccountID}/courses`, {
+            'course[name]': oldCourse[0].name,
+            'course[course_code]': oldCourse[0].course_code,
+        },
+        (err, newCourse) => {
+            if (err) callback(err, newCourse);
+            else {
+                console.log(chalk.blueBright(`Course Copy Created: ${chalk.greenBright(newCourse.id)}`));
+                callback(null, newCourse);
             }
+        }
         );
     });
 }
@@ -35,7 +34,7 @@ function createMigration(newCourse, callback) {
     const postObj = {
         'migration_type': 'course_copy_importer',
         'settings[source_course_id]': sourceCourseID,
-    }
+    };
     canvas.post(`/api/v1/courses/${newCourse.id}/content_migrations`, postObj, (err, migration) => {
         if (err) callback(err, migration, newCourse);
         else {
@@ -57,7 +56,7 @@ function checkMigration(migration, newCourse, callback) {
                         clearInterval(checkLoop);
                         callback(null, newCourse);
                     } else {
-                        console.log(chalk.blueBright(`Course Copy Progress: `) + data[0].workflow_state);
+                        console.log(chalk.blueBright('Course Copy Progress: ') + data[0].workflow_state);
                     }
                 }
             }
@@ -74,8 +73,7 @@ function updateSettings(newCourse, callback) {
             return;
         }
         /* Put the name/code into the new course */
-        canvas.put(`/api/v1/courses/${newCourse.id}`,
-        {
+        canvas.put(`/api/v1/courses/${newCourse.id}`, {
             'course': {
                 name: oldCourse.name,
                 course_code: oldCourse.course_code
@@ -115,11 +113,11 @@ module.exports = (sID, aID, stepCallback) => {
                     if (err) stepCallback(err, newCourse);
                     else {
                         //copyGroups(sID, newCourse.id, () => {
-                            stepCallback(null, newCourse);
+                        stepCallback(null, newCourse);
                         //});
                     }
                 });
-            };
+            }
         }
     });
 };
