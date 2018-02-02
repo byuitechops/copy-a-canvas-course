@@ -110,7 +110,9 @@ module.exports = (sID, aID, stepCallback) => {
                     checkMigration,
                     updateSettings,
                 ], (err, newCourse) => {
-                    if (err) stepCallback(err, newCourse);
+                    if (err) {
+                        stepCallback(err, newCourse); 
+                        return;}
                     else {
                         //copyGroups(sID, newCourse.id, () => {
                         stepCallback(null, newCourse);
