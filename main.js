@@ -8,7 +8,6 @@ var sourceCourseID = 748;
 var targetAccountID = -1;
 
 function createCourse(callback) {
-
     /* Get the old course, so we can get the name */
     canvas.get(`/api/v1/courses/${sourceCourseID}`, (oldErr, oldCourse) => {
         if (oldErr) {
