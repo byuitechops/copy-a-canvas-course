@@ -3,6 +3,13 @@
 const canvas = require('canvas-wrapper');
 const chalk = require('chalk');
 const asyncLib = require('async');
+const Enquirer = require('enquirer');
+var enquirer = new Enquirer();
+
+/* set up enquirer */
+enquirer.register('confirm', require('prompt-confirm'));
+const questions = [{ type: 'confirm', name: 'isValid', message: 'Did the course copy correctly?'
+}];
 
 var sourceCourseID = 748;
 var targetAccountID = -1;
@@ -50,8 +57,11 @@ function checkMigration(migration, newCourse, callback) {
                 if (checkErr) {
                     clearInterval(checkLoop);
                     callback(checkErr, newCourse);
+                } else if (data[0].workflow_state === 'failed') {
+                    clearInterval(checkLoop);
+                    callback(new Error('Migration Failed'), newCourse);
                 } else {
-                    if (data[0].finished_at) {
+                    if (data[0].workflow_state === 'completed') {
                         clearInterval(checkLoop);
                         callback(null, newCourse);
                     } else {
@@ -62,6 +72,44 @@ function checkMigration(migration, newCourse, callback) {
         );
     }, 2000);
 }
+
+
+function getMigrationIssues(newCourse, callback) {
+    canvas.get(`/api/v1/courses/${newCourse.id}/content_migrations`, (err, migrations) => {
+        if (err) {
+            callback(err, newCourse);
+            return;
+        }
+        canvas.get(`/api/v1/courses/${newCourse.id}/content_migrations/${migrations[0].id}/migration_issues`, (err, migrationIssues) => {
+            if (err) {
+                callback(err, newCourse);
+                return;
+            }
+
+            var migrationErrs = migrationIssues.some(issue => {
+                return issue.issue_type === 'error';
+            });
+
+            if (!migrationErrs) {
+                callback(null, newCourse);
+            } else {
+                /* use enquire to have user verify course migration statys */
+                /* OR filter migration issues by type and only stop import if there are errors. Have human verify if there are warnings? */
+                console.log('Migration Issues Found. Please Verify course copy integrity.');
+                console.log(`https://byui.instructure.com/courses/${newCourse.id}/content_migrations/`);
+
+                enquirer.ask(questions)
+                    .then(answer => {
+                        if (answer.isValid)
+                            callback(null, newCourse);
+                        else
+                            callback(new Error('Original Canvas course failed to copy'), newCourse);
+                    });
+            }
+        });
+    });
+}
+
 
 /* Update the name/code of the copy to the name/code of the source course */
 function updateSettings(newCourse, callback) {
@@ -107,15 +155,14 @@ module.exports = (sID, aID, stepCallback) => {
                     createCourse,
                     createMigration,
                     checkMigration,
+                    getMigrationIssues,
                     updateSettings,
                 ], (err, newCourse) => {
                     if (err) {
-                        stepCallback(err, newCourse); 
-                        return;}
-                    else {
-                        //copyGroups(sID, newCourse.id, () => {
+                        stepCallback(err, newCourse);
+                        return;
+                    } else {
                         stepCallback(null, newCourse);
-                        //});
                     }
                 });
             }

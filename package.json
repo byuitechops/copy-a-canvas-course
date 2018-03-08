@@ -20,6 +20,8 @@
     "async": "^2.6.0",
     "canvas-wrapper": "git+https://github.com/byuitechops/Canvas-wrapper.git",
     "chalk": "^2.3.0",
-    "https": "^1.0.0"
+    "enquirer": "^1.0.3",
+    "https": "^1.0.0",
+    "prompt-confirm": "^1.2.0"
   }
 }
