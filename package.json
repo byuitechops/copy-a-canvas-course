@@ -18,7 +18,7 @@
   "homepage": "https://github.com/byuitechops/copy-a-canvas-course#readme",
   "dependencies": {
     "async": "^2.6.0",
-    "canvas-wrapper": "git+https://github.com/byuitechops/Canvas-wrapper.git",
+    "canvas-wrapper": "git+https://github.com/byuitechops/canvas-wrapper.git",
     "chalk": "^2.3.0",
     "enquirer": "^1.0.3",
     "https": "^1.0.0",
