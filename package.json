@@ -21,7 +21,9 @@
     "canvas-wrapper": "github:byuitechops/canvas-wrapper",
     "chalk": "^2.3.0",
     "enquirer": "^1.0.3",
-    "https": "^1.0.0",
     "prompt-confirm": "^1.2.0"
+  },
+  "devDependencies": {
+    "tap": "^11.1.4"
   }
 }
